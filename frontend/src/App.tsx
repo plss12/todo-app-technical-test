@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Todo } from "./types/todo";
 import { getTodos, createTodo, toggleTodoStatus, deleteTodo } from "./api/todo";
 
@@ -7,11 +7,15 @@ function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
 
-  const loadTodos = () => {
+  const loadTodos = useCallback(() => {
     getTodos().then((data) => {
       setTodos(data);
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTodos();
+  }, [loadTodos]);
 
   const addTodo = () => {
     if (!title.trim()) return;
@@ -54,7 +58,7 @@ function App() {
             onClick={loadTodos}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition cursor-pointer"
           >
-            Load Tasks
+            Refresh Tasks
           </button>
         </div>
 
