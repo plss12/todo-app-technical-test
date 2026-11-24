@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -19,8 +19,24 @@ app.add_middleware(
 
 
 class Todo(BaseModel):
+    """A stored todo, as returned by the API."""
+
+    id: int
     title: str
     completed: bool = False
+
+
+class TodoCreate(BaseModel):
+    """Payload to create a todo. The id is assigned by the server."""
+
+    title: str
+    completed: bool = False
+
+
+class TodoUpdate(BaseModel):
+    """Partial update payload. Only the fields sent by the client are applied."""
+
+    completed: bool | None = None
 
 
 def load_todos() -> list[Todo]:
@@ -29,7 +45,7 @@ def load_todos() -> list[Todo]:
         return [Todo(**todo) for todo in json.load(f)]
 
 
-def save_todos(todos: list[Todo]):
+def save_todos(todos: list[Todo]) -> None:
     """
     Save todos to the JSON file.
 
@@ -41,20 +57,52 @@ def save_todos(todos: list[Todo]):
 
 
 @app.get("/todos", response_model=list[Todo])
-def get_todos():
+def get_todos() -> list[Todo]:
     """Get all todos."""
     return load_todos()
 
 
 @app.post("/todos", response_model=Todo)
-def add_todo(todo: Todo):
+def add_todo(payload: TodoCreate) -> Todo:
     """
-    Add a new todo.
+    Add a new todo with a server-generated id.
 
     Args:
-        todo (Todo): The todo to add.
+        payload (TodoCreate): Title and completion status of the new todo.
+
+    Returns:
+        Todo: The created todo, including its id.
     """
     todos = load_todos()
+    next_id = max((todo.id for todo in todos), default=0) + 1
+    todo = Todo(id=next_id, title=payload.title, completed=payload.completed)
     todos.append(todo)
     save_todos(todos)
     return todo
+
+
+@app.patch("/todos/{todo_id}", response_model=Todo)
+def update_todo(todo_id: int, changes: TodoUpdate) -> Todo:
+    """
+    Partially update a todo.
+
+    Args:
+        todo_id (int): Id of the todo to update.
+        changes (TodoUpdate): Fields to change. Omitted or null fields are left as they are.
+
+    Returns:
+        Todo: The updated todo.
+
+    Raises:
+        HTTPException: 404 if no todo has the given id.
+    """
+    todos = load_todos()
+    for index, todo in enumerate(todos):
+        if todo.id == todo_id:
+            updated = todo.model_copy(
+                update=changes.model_dump(exclude_unset=True, exclude_none=True)
+            )
+            todos[index] = updated
+            save_todos(todos)
+            return updated
+    raise HTTPException(status_code=404, detail=f"Todo {todo_id} not found")
