@@ -106,3 +106,23 @@ def update_todo(todo_id: int, changes: TodoUpdate) -> Todo:
             save_todos(todos)
             return updated
     raise HTTPException(status_code=404, detail=f"Todo {todo_id} not found")
+
+
+@app.delete("/todos/{todo_id}", status_code=204)
+def delete_todo(todo_id: int) -> None:
+    """
+    Delete a todo.
+
+    Args:
+        todo_id (int): Id of the todo to delete.
+
+    Raises:
+        HTTPException: 404 if no todo has the given id.
+    """
+    todos = load_todos()
+    for index, todo in enumerate(todos):
+        if todo.id == todo_id:
+            del todos[index]
+            save_todos(todos)
+            return
+    raise HTTPException(status_code=404, detail=f"Todo {todo_id} not found")

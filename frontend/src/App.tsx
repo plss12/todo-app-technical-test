@@ -1,7 +1,7 @@
 // src/App.tsx
 import { useState } from "react";
 import type { Todo } from "./types/todo";
-import { getTodos, createTodo, toggleTodoStatus } from "./api/todo";
+import { getTodos, createTodo, toggleTodoStatus, deleteTodo } from "./api/todo";
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -15,16 +15,21 @@ function App() {
 
   const addTodo = () => {
     if (!title.trim()) return;
-    createTodo(title)
+    createTodo(title).then(() => {
+      setTitle("");
+      loadTodos();
+    });
   };
 
   const toggleTodo = (id: number) => {
     const todo = todos.find((t) => t.id === id);
     if (!todo) return;
 
-    toggleTodoStatus(id, todo.completed).then((updated) => {
-      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    });
+    toggleTodoStatus(id, todo.completed).then(() => loadTodos());
+  };
+
+  const removeTodo = (id: number) => {
+    deleteTodo(id).then(() => loadTodos());
   };
 
   return (
@@ -57,9 +62,7 @@ function App() {
           {todos.map((todo) => (
             <li
               key={todo.id}
-              className={`flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200 ${
-                todo.completed ? "line-through text-gray-400" : ""
-              }`}
+              className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200"
             >
               <input
                 type="checkbox"
@@ -67,7 +70,16 @@ function App() {
                 onChange={() => toggleTodo(todo.id)}
                 className="cursor-pointer"
               />
-              <span>{todo.title}</span>
+              <span className={todo.completed ? "line-through text-gray-400" : ""}>
+                {todo.title}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeTodo(todo.id)}
+                className="ml-auto bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded-lg transition cursor-pointer"
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>
