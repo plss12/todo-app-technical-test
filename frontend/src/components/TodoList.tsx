@@ -4,10 +4,23 @@ import TodoItem from "./TodoItem";
 
 interface TodoListProps {
   todos: Todo[];
+  emptyMessage: string;
   toggleTodo: (id: number) => void;
+  toggleFavorite: (id: number) => void;
+  removeTodo: (id: number) => void;
 }
 
-const TodoList: React.FC<TodoListProps> = ({ todos, toggleTodo }) => {
+const TodoList: React.FC<TodoListProps> = ({
+  todos,
+  emptyMessage,
+  toggleTodo,
+  toggleFavorite,
+  removeTodo,
+}) => {
+  if (todos.length === 0) {
+    return <p className="text-sm text-gray-400">{emptyMessage}</p>;
+  }
+
   return (
     <ul className="space-y-2">
       {todos.map((todo) => (
@@ -15,6 +28,8 @@ const TodoList: React.FC<TodoListProps> = ({ todos, toggleTodo }) => {
           key={todo.id}
           todo={todo}
           toggleTodo={toggleTodo}
+          toggleFavorite={toggleFavorite}
+          removeTodo={removeTodo}
         />
       ))}
     </ul>

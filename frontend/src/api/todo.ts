@@ -8,13 +8,16 @@ export const getTodos = async (): Promise<Todo[]> => {
   return res.json();
 };
 
-export const createTodo = async (title: string): Promise<void> => {
+export const createTodo = async (
+  title: string,
+  description: string
+): Promise<void> => {
   const res = await fetch(BASE_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ title, completed: false }),
+    body: JSON.stringify({ title, description, completed: false, favorite: false }),
   });
   if (!res.ok) throw new Error("Error creating todo");
 };
@@ -31,6 +34,21 @@ export const toggleTodoStatus = async (
     body: JSON.stringify({ completed: !currentStatus }),
   });
   if (!res.ok) throw new Error("Error toggling todo status");
+  return res.json();
+};
+
+export const toggleTodoFavorite = async (
+  id: number,
+  currentFavorite: boolean
+): Promise<Todo> => {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ favorite: !currentFavorite }),
+  });
+  if (!res.ok) throw new Error("Error toggling todo favorite");
   return res.json();
 };
 

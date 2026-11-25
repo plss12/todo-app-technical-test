@@ -1,11 +1,20 @@
 // src/App.tsx
 import { useState, useCallback, useEffect } from "react";
 import type { Todo } from "./types/todo";
-import { getTodos, createTodo, toggleTodoStatus, deleteTodo } from "./api/todo";
+import {
+  getTodos,
+  createTodo,
+  toggleTodoStatus,
+  toggleTodoFavorite,
+  deleteTodo,
+} from "./api/todo";
+import TodoForm from "./components/TodoForm";
+import TodoList from "./components/TodoList";
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
 
   const loadTodos = useCallback(() => {
     getTodos().then((data) => {
@@ -19,8 +28,9 @@ function App() {
 
   const addTodo = () => {
     if (!title.trim()) return;
-    createTodo(title).then(() => {
+    createTodo(title, description).then(() => {
       setTitle("");
+      setDescription("");
       loadTodos();
     });
   };
@@ -32,28 +42,25 @@ function App() {
     toggleTodoStatus(id, todo.completed).then(() => loadTodos());
   };
 
+  const toggleFavorite = (id: number) => {
+    const todo = todos.find((t) => t.id === id);
+    if (!todo) return;
+
+    toggleTodoFavorite(id, todo.favorite).then(() => loadTodos());
+  };
+
   const removeTodo = (id: number) => {
     deleteTodo(id).then(() => loadTodos());
   };
 
+  const favoriteTodos = todos.filter((t) => t.favorite);
+  const otherTodos = todos.filter((t) => !t.favorite);
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800">ToDo List</h1>
-
-        <div className="flex gap-2 mb-8">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Add a new task..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={addTodo}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition cursor-pointer"
-          >
-            Add
-          </button>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">ToDo List</h1>
           <button
             onClick={loadTodos}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition cursor-pointer"
@@ -62,31 +69,35 @@ function App() {
           </button>
         </div>
 
-        <ul className="space-y-2">
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200"
-            >
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-                className="cursor-pointer"
-              />
-              <span className={todo.completed ? "line-through text-gray-400" : ""}>
-                {todo.title}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeTodo(todo.id)}
-                className="ml-auto bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded-lg transition cursor-pointer"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+        <TodoForm
+          title={title}
+          setTitle={setTitle}
+          description={description}
+          setDescription={setDescription}
+          addTodo={addTodo}
+        />
+
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-2 text-gray-700">Favorites</h2>
+          <TodoList
+            todos={favoriteTodos}
+            emptyMessage="No favorite tasks yet."
+            toggleTodo={toggleTodo}
+            toggleFavorite={toggleFavorite}
+            removeTodo={removeTodo}
+          />
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold mb-2 text-gray-700">Tasks</h2>
+          <TodoList
+            todos={otherTodos}
+            emptyMessage="No tasks."
+            toggleTodo={toggleTodo}
+            toggleFavorite={toggleFavorite}
+            removeTodo={removeTodo}
+          />
+        </section>
       </div>
     </div>
   );

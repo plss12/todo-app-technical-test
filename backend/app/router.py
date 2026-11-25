@@ -18,14 +18,20 @@ def add_todo(payload: TodoCreate) -> Todo:
     Add a new todo with a server-generated id.
 
     Args:
-        payload (TodoCreate): Title and completion status of the new todo.
+        payload (TodoCreate): Fields of the new todo.
 
     Returns:
         Todo: The created todo, including its id.
     """
     todos = load_todos()
     next_id = max((todo.id for todo in todos), default=0) + 1
-    todo = Todo(id=next_id, title=payload.title, completed=payload.completed)
+    todo = Todo(
+        id=next_id,
+        title=payload.title,
+        completed=payload.completed,
+        description=payload.description,
+        favorite=payload.favorite,
+    )
     todos.append(todo)
     save_todos(todos)
     return todo

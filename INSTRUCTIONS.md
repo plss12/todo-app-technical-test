@@ -23,10 +23,10 @@ The goal is to demonstrate your understanding of the codebase and your ability t
    - [X] The user marks a task as completed.
 
 4. **Add Descriptions and Favorite Tasks Section**
-   - [ ] Add a description field to each task.
-   - [ ] Introduce the concept of a `favorite` tasks.
-   - [ ] Add a way to mark/unmark tasks as favorite.
-   - [ ] Display favorite tasks in a separate section of the UI.
+   - [X] Add a description field to each task.
+   - [X] Introduce the concept of a `favorite` tasks.
+   - [X] Add a way to mark/unmark tasks as favorite.
+   - [X] Display favorite tasks in a separate section of the UI.
 
    _**Suggestion**: To maintain clean and scalable code, consider using routing or the repository pattern if you're adding numerous endpoints._
 
